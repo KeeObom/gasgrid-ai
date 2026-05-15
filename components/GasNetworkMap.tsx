@@ -1,25 +1,17 @@
 "use client";
 
-import React, { useState } from "react";
-// import ReactFlow, {
-//   Background,
-//   Controls,
-//   MiniMap,
-//   Node,
-//   Edge,
-// } from "@xyflow/react";
+import React, { useEffect, useState } from "react";
 import {
-    ReactFlow,
-    Background,
-    Controls,
-    MiniMap,
-    type Node,
-    type Edge,
-  } from "@xyflow/react";
+  ReactFlow,
+  Background,
+  Controls,
+  MiniMap,
+  Node,
+  Edge,
+} from "@xyflow/react";
 import "@xyflow/react/dist/style.css";
 import { AlertTriangle, Activity, Database, Bot } from "lucide-react";
-import { assets, pipelines } from "../data/dummy-network";
-// import { assets, pipelines } from "../data/dummy-network";
+import { supabase } from "@/lib/supabase";
 
 const positions: Record<string, { x: number; y: number }> = {
   escravos: { x: 100, y: 260 },
@@ -60,11 +52,99 @@ function getEdgeStyle(status: string) {
 }
 
 export default function GasNetworkMap() {
+  const [assets, setAssets] = useState<any[]>([]);
+  const [pipelines, setPipelines] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    async function loadNetworkData() {
+      setLoading(true);
+  
+      const { data: assetsData, error: assetsError } = await supabase
+        .from("assets")
+        .select("*");
+  
+      const { data: pipelinesData, error: pipelinesError } = await supabase
+        .from("pipelines")
+        .select("*");
+  
+      if (assetsError || pipelinesError) {
+        console.error("Error loading network data:", assetsError || pipelinesError);
+      }
+  
+      setAssets(assetsData || []);
+      setPipelines(pipelinesData || []);
+      setLoading(false);
+    }
+  
+    loadNetworkData();
+  
+    const assetsChannel = supabase
+      .channel("assets-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "assets" },
+        () => {
+          loadNetworkData();
+        }
+      )
+      .subscribe();
+  
+    const pipelinesChannel = supabase
+      .channel("pipelines-realtime")
+      .on(
+        "postgres_changes",
+        { event: "*", schema: "public", table: "pipelines" },
+        () => {
+          loadNetworkData();
+        }
+      )
+      .subscribe();
+  
+    return () => {
+      supabase.removeChannel(assetsChannel);
+      supabase.removeChannel(pipelinesChannel);
+    };
+  }, []);
+
+  // useEffect(() => {
+  //   async function loadNetworkData() {
+  //     setLoading(true);
+
+  //     const { data: assetsData, error: assetsError } = await supabase
+  //       .from("assets")
+  //       .select("*");
+
+  //     const { data: pipelinesData, error: pipelinesError } = await supabase
+  //       .from("pipelines")
+  //       .select("*");
+
+  //     if (assetsError || pipelinesError) {
+  //       console.error("Error loading network data:", assetsError || pipelinesError);
+  //     }
+
+  //     setAssets(assetsData || []);
+  //     setPipelines(pipelinesData || []);
+  //     setLoading(false);
+  //   }
+
+  //   loadNetworkData();
+  // }, []);
+
+  if (loading) {
+    return (
+      <main className="flex min-h-screen items-center justify-center bg-slate-950 text-white">
+        <div className="rounded-2xl border border-white/10 bg-slate-900 p-6">
+          Loading GasGrid AI network...
+        </div>
+      </main>
+    );
+  }
 
   const nodes: Node[] = assets.map((asset) => ({
     id: asset.id,
-    position: positions[asset.id],
+    position: positions[asset.id] || { x: 300, y: 300 },
     data: {
       label: (
         <div
@@ -92,7 +172,11 @@ export default function GasNetworkMap() {
     label: pipe.name,
     data: pipe,
     style: getEdgeStyle(pipe.status),
-    labelStyle: { fontSize: 12, fontWeight: 700 },
+    labelStyle: {
+      fontSize: 12,
+      fontWeight: 700,
+      fill: "#e2e8f0",
+    },
   }));
 
   const criticalPipelines = pipelines.filter((p) => p.status === "critical");
@@ -145,15 +229,13 @@ export default function GasNetworkMap() {
             edges={edges}
             fitView
             onNodeClick={(event, node) => {
-                event.preventDefault();
-                setSelected(node.data?.asset);
-              }}
-              onEdgeClick={(event, edge) => {
-                event.preventDefault();
-                setSelected(edge.data);
-              }}
-            // onNodeClick={(_, node) => setSelected(node.data.asset)}
-            // onEdgeClick={(_, edge) => setSelected(edge.data)}
+              event.preventDefault();
+              setSelected(node.data?.asset);
+            }}
+            onEdgeClick={(event, edge) => {
+              event.preventDefault();
+              setSelected(edge.data);
+            }}
           >
             <Background />
             <MiniMap />
@@ -204,3 +286,4 @@ export default function GasNetworkMap() {
     </main>
   );
 }
+
