@@ -12,6 +12,8 @@ import {
 import "@xyflow/react/dist/style.css";
 import { AlertTriangle, Activity, Database, Bot } from "lucide-react";
 import { supabase } from "@/lib/supabase";
+import AIAlertPanel from "@/components/AIAlertPanel";
+import FieldReadingModal from "@/components/FieldReadingModal";
 
 const positions: Record<string, { x: number; y: number }> = {
   escravos: { x: 100, y: 260 },
@@ -56,6 +58,7 @@ export default function GasNetworkMap() {
   const [pipelines, setPipelines] = useState<any[]>([]);
   const [selected, setSelected] = useState<any>(null);
   const [loading, setLoading] = useState(true);
+  const [showReadingModal, setShowReadingModal] = useState(false);
 
   useEffect(() => {
     async function loadNetworkData() {
@@ -205,6 +208,13 @@ export default function GasNetworkMap() {
               <Database size={18} />
               Knowledge Base
             </button>
+            
+            <button
+              onClick={() => setShowReadingModal(true)}
+              className="flex w-full items-center gap-3 rounded-xl bg-cyan-500 px-4 py-3 text-left font-semibold text-slate-950"
+            >
+              + New Field Reading
+            </button>
           </div>
 
           <div className="mt-8 rounded-2xl border border-red-500/30 bg-red-500/10 p-4">
@@ -216,6 +226,7 @@ export default function GasNetworkMap() {
               {criticalPipelines.length} critical pipeline anomaly detected.
             </p>
           </div>
+          <AIAlertPanel pipelines={pipelines} />
         </aside>
 
         <section className="relative bg-slate-950">
@@ -283,6 +294,13 @@ export default function GasNetworkMap() {
           )}
         </aside>
       </div>
+
+      <FieldReadingModal
+        open={showReadingModal}
+        onClose={() => setShowReadingModal(false)}
+        assets={pipelines}
+      />
+
     </main>
   );
 }
