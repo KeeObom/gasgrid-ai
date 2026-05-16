@@ -26,6 +26,7 @@ const positions: Record<string, { x: number; y: number }> = {
 function getNodeColor(status: string) {
   if (status === "critical") return "border-red-500 bg-red-50 text-red-700";
   if (status === "warning") return "border-yellow-500 bg-yellow-50 text-yellow-700";
+  if (status === "inactive") return "border-slate-500 bg-slate-200 text-slate-700";
   return "border-emerald-500 bg-emerald-50 text-emerald-700";
 }
 
@@ -43,6 +44,15 @@ function getEdgeStyle(status: string) {
       stroke: "#f59e0b",
       strokeWidth: 4,
       filter: "drop-shadow(0 0 8px #f59e0b)",
+    };
+  }
+
+  if (status === "inactive") {
+    return {
+      stroke: "#64748b",
+      strokeWidth: 3,
+      opacity: 0.45,
+      strokeDasharray: "8 6",
     };
   }
 
@@ -171,7 +181,8 @@ export default function GasNetworkMap() {
     id: pipe.id,
     source: pipe.source,
     target: pipe.target,
-    animated: pipe.status === "active" || pipe.status === "critical",
+    // animated: pipe.status === "active" || pipe.status === "critical",
+    animated: pipe.status === "active" || pipe.status === "warning" || pipe.status === "critical",
     label: pipe.name,
     data: pipe,
     style: getEdgeStyle(pipe.status),

@@ -16,7 +16,8 @@ export default function FieldReadingModal({
   const [assetId, setAssetId] = useState("");
   const [pressure, setPressure] = useState("");
   const [flow, setFlow] = useState("");
-  const [status, setStatus] = useState("active");
+  const [status, setStatus] = useState("");
+//   const [status, setStatus] = useState("active");
   const [notes, setNotes] = useState("");
   const [loading, setLoading] = useState(false);
 
@@ -24,38 +25,78 @@ export default function FieldReadingModal({
 
   async function handleSubmit(e: React.FormEvent) {
     e.preventDefault();
-
+  
+    if (!assetId) return;
+  
     setLoading(true);
-
+  
+    const updateData: any = {};
+  
+    if (pressure !== "") updateData.pressure = Number(pressure);
+    if (flow !== "") updateData.flow = Number(flow);
+    if (status !== "") updateData.status = status;
+  
     await supabase.from("field_readings").insert([
       {
         asset_id: assetId,
-        pressure: Number(pressure),
-        flow: Number(flow),
-        status,
-        notes,
+        pressure: pressure !== "" ? Number(pressure) : null,
+        flow: flow !== "" ? Number(flow) : null,
+        status: status !== "" ? status : null,
+        notes: notes !== "" ? notes : null,
       },
     ]);
-
-    await supabase
-      .from("pipelines")
-      .update({
-        pressure: Number(pressure),
-        flow: Number(flow),
-        status,
-      })
-      .eq("id", assetId);
-
+  
+    if (Object.keys(updateData).length > 0) {
+      await supabase
+        .from("pipelines")
+        .update(updateData)
+        .eq("id", assetId);
+    }
+  
     setLoading(false);
-
     onClose();
-
+  
     setAssetId("");
     setPressure("");
     setFlow("");
-    setStatus("active");
+    setStatus("");
     setNotes("");
   }
+
+//   async function handleSubmit(e: React.FormEvent) {
+//     e.preventDefault();
+
+//     setLoading(true);
+
+//     await supabase.from("field_readings").insert([
+//       {
+//         asset_id: assetId,
+//         pressure: Number(pressure),
+//         flow: Number(flow),
+//         status,
+//         notes,
+//       },
+//     ]);
+
+//     await supabase
+//       .from("pipelines")
+//       .update({
+//         pressure: Number(pressure),
+//         flow: Number(flow),
+//         status,
+//       })
+//       .eq("id", assetId);
+
+//     setLoading(false);
+
+//     onClose();
+
+//     setAssetId("");
+//     setPressure("");
+//     setFlow("");
+//     setStatus("active");
+//     setNotes("");
+//   }
 
   return (
     <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/70">
@@ -105,7 +146,7 @@ export default function FieldReadingModal({
               value={pressure}
               onChange={(e) => setPressure(e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-              required
+            //   required
             />
           </div>
 
@@ -119,7 +160,7 @@ export default function FieldReadingModal({
               value={flow}
               onChange={(e) => setFlow(e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
-              required
+            //   required
             />
           </div>
 
@@ -133,6 +174,7 @@ export default function FieldReadingModal({
               onChange={(e) => setStatus(e.target.value)}
               className="w-full rounded-xl border border-white/10 bg-slate-950 p-3"
             >
+              <option value="">Leave unchanged</option>  
               <option value="active">Active</option>
               <option value="warning">Warning</option>
               <option value="critical">Critical</option>
