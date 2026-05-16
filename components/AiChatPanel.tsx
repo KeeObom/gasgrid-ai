@@ -1,6 +1,7 @@
 "use client";
 
-import { useState } from "react";
+// import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { Bot, Send } from "lucide-react";
 
 export default function AiChatPanel({
@@ -23,6 +24,14 @@ export default function AiChatPanel({
   ]);
 
   const [input, setInput] = useState("");
+  const chatContainerRef = useRef<HTMLDivElement | null>(null);
+
+  useEffect(() => {
+    if (chatContainerRef.current) {
+      chatContainerRef.current.scrollTop =
+        chatContainerRef.current.scrollHeight;
+    }
+  }, [messages]);
 
   function generateAnswer(question: string) {
     const q = question.toLowerCase();
@@ -127,7 +136,11 @@ export default function AiChatPanel({
         GasGrid AI Assistant
       </div>
 
-      <div className="mt-4 max-h-80 space-y-3 overflow-y-auto pr-1">
+      {/* <div className="mt-4 max-h-80 space-y-3 overflow-y-auto pr-1"> */}
+      <div
+        ref={chatContainerRef}
+        className="mt-4 max-h-80 space-y-3 overflow-y-auto pr-1"
+        >
         {messages.map((message, index) => (
           <div
             key={index}
@@ -140,6 +153,7 @@ export default function AiChatPanel({
             {message.content}
           </div>
         ))}
+
       </div>
 
       <div className="mt-4 flex gap-2">
