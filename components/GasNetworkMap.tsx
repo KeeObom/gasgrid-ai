@@ -71,6 +71,7 @@ export default function GasNetworkMap() {
   const [loading, setLoading] = useState(true);
   const [showReadingModal, setShowReadingModal] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
+  const [documents, setDocuments] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadNetworkData() {
@@ -87,21 +88,29 @@ export default function GasNetworkMap() {
       const { data: customersData, error: customersError } = await supabase
         .from("station_customers")
         .select("*");
-  
-      // if (assetsError || pipelinesError) {
-      //   console.error("Error loading network data:", assetsError || pipelinesError);
-      // }
 
-      if (assetsError || pipelinesError || customersError) {
+      const { data: documentsData, error: documentsError } = await supabase
+        .from("knowledge_documents")
+        .select("*");
+
+      if (assetsError || pipelinesError || customersError || documentsError) {
         console.error(
           "Error loading network data:",
-          assetsError || pipelinesError || customersError
+          assetsError || pipelinesError || customersError || documentsError
         );
-      }
+      } 
+
+      // if (assetsError || pipelinesError || customersError) {
+      //   console.error(
+      //     "Error loading network data:",
+      //     assetsError || pipelinesError || customersError
+      //   );
+      // }
   
       setAssets(assetsData || []);
       setPipelines(pipelinesData || []);
       setCustomers(customersData || []);
+      setDocuments(documentsData || []);
       setLoading(false);
     }
   
@@ -359,6 +368,7 @@ export default function GasNetworkMap() {
               assets={assets}
               pipelines={pipelines}
               customers={customers}
+              documents={documents}
             />
           </div>
         </aside>

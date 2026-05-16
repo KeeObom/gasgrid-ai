@@ -7,10 +7,12 @@ export default function AiChatPanel({
   assets,
   pipelines,
   customers,
+  documents,
 }: {
   assets: any[];
   pipelines: any[];
   customers: any[];
+  documents: any[];
 }) {
   const [messages, setMessages] = useState([
     {
@@ -70,6 +72,33 @@ export default function AiChatPanel({
     if (q.includes("route") || q.includes("explain")) {
       return `The current demo network flows from Escravos Gas Terminal to Warri Compressor Station, then to Oben Gas Hub. From Oben, gas is routed toward Lagos Metering Station and Benin Metering Station. This allows the system to show upstream and downstream impact when a pressure anomaly occurs.`;
     }
+
+    if (
+        q.includes("maintenance") ||
+        q.includes("what should") ||
+        q.includes("recommend") ||
+        q.includes("fix") ||
+        q.includes("leak") ||
+        q.includes("compressor")
+      ) {
+        const matchedDocs = documents.filter((doc) => {
+          const text = `${doc.title} ${doc.category} ${doc.related_asset_type} ${doc.content}`.toLowerCase();
+          return (
+            text.includes("pressure") ||
+            text.includes("compressor") ||
+            text.includes("leak") ||
+            text.includes("metering")
+          );
+        });
+      
+        if (matchedDocs.length === 0) {
+          return "I do not have maintenance documents loaded yet, but I recommend verifying field readings, checking upstream/downstream pressure, and escalating abnormal readings to operations control.";
+        }
+      
+        return `Based on the maintenance knowledge base: ${matchedDocs
+          .map((doc) => `${doc.title}: ${doc.content}`)
+          .join(" ")}`;
+      }
 
     return "I can currently answer questions about Lagos, pipeline problems, routes, pressure, status, connected customers, and affected offtakers. Try asking: “What is wrong with the Lagos line?”";
   }
