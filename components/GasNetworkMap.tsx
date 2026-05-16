@@ -15,6 +15,7 @@ import { supabase } from "@/lib/supabase";
 import AIAlertPanel from "@/components/AIAlertPanel";
 import FieldReadingModal from "@/components/FieldReadingModal";
 import AiChatPanel from "@/components/AiChatPanel";
+import IncidentPanel from "@/components/IncidentPanel";
 
 const positions: Record<string, { x: number; y: number }> = {
   escravos: { x: 100, y: 260 },
@@ -72,6 +73,7 @@ export default function GasNetworkMap() {
   const [showReadingModal, setShowReadingModal] = useState(false);
   const [customers, setCustomers] = useState<any[]>([]);
   const [documents, setDocuments] = useState<any[]>([]);
+  const [incidents, setIncidents] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadNetworkData() {
@@ -93,10 +95,14 @@ export default function GasNetworkMap() {
         .from("knowledge_documents")
         .select("*");
 
-      if (assetsError || pipelinesError || customersError || documentsError) {
+      const { data: incidentsData, error: incidentsError } = await supabase
+        .from("incidents")
+        .select("*");
+
+      if (assetsError || pipelinesError || customersError || documentsError || incidentsError) {
         console.error(
           "Error loading network data:",
-          assetsError || pipelinesError || customersError || documentsError
+          assetsError || pipelinesError || customersError || documentsError || incidentsError
         );
       } 
 
@@ -111,6 +117,7 @@ export default function GasNetworkMap() {
       setPipelines(pipelinesData || []);
       setCustomers(customersData || []);
       setDocuments(documentsData || []);
+      setIncidents(incidentsData || []);
       setLoading(false);
     }
   
@@ -219,9 +226,12 @@ export default function GasNetworkMap() {
   const criticalPipelines = pipelines.filter((p) => p.status === "critical");
 
   return (
-    <main className="min-h-screen bg-slate-950 text-white">
-      <div className="grid h-screen grid-cols-[280px_1fr_360px]">
-        <aside className="border-r border-white/10 bg-slate-900 p-5">
+    <main className="h-screen overflow-hidden bg-slate-950 text-white">
+      <div className="grid h-full grid-cols-[280px_1fr_360px]">
+    {/* <main className="min-h-screen bg-slate-950 text-white">
+      <div className="grid h-screen grid-cols-[280px_1fr_360px]"> */}
+        {/* <aside className="border-r border-white/10 bg-slate-900 p-5"> */}
+        <aside className="h-full overflow-y-auto border-r border-white/10 bg-slate-900 p-5">
           <h1 className="text-2xl font-bold">GasGrid AI</h1>
           <p className="mt-2 text-sm text-slate-400">
             Intelligent gas transmission digital twin
@@ -257,10 +267,16 @@ export default function GasNetworkMap() {
               Active Alerts
             </div>
             <p className="mt-2 text-sm text-red-100">
+              {/* {criticalPipelines.length} critical pipeline anomaly detected. */}
               {criticalPipelines.length} critical pipeline anomaly detected.
+
+              <div className="mt-2 text-xs text-red-200">
+                {incidents.filter((i) => i.status !== "resolved").length} active operational incident(s)
+              </div>
             </p>
           </div>
           <AIAlertPanel pipelines={pipelines} />
+          <IncidentPanel incidents={incidents} />
         </aside>
 
         <section className="relative bg-slate-950">
