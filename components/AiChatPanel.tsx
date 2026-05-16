@@ -129,12 +129,35 @@ export default function AiChatPanel({
     setInput("");
   }
 
+  function clearChat() {
+    setMessages([
+      {
+        role: "assistant",
+        content:
+          "Hello, I am GasGrid AI. Ask me about pipeline routes, pressure issues, affected customers, or asset status.",
+      },
+    ]);
+  }
+
   return (
     <div className="mt-6 rounded-2xl border border-white/10 bg-white/5 p-4">
-      <div className="flex items-center gap-2 font-semibold text-cyan-300">
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-2 font-semibold text-cyan-300">
+            <Bot size={18} />
+            GasGrid AI Assistant
+        </div>
+
+        <button
+            onClick={clearChat}
+            className="rounded-lg bg-red-500/15 px-3 py-1 text-xs font-semibold text-red-300 transition hover:bg-red-500/25"
+        >
+            Clear Chat
+        </button>
+        </div>
+      {/* <div className="flex items-center gap-2 font-semibold text-cyan-300">
         <Bot size={18} />
         GasGrid AI Assistant
-      </div>
+      </div> */}
 
       {/* <div className="mt-4 max-h-80 space-y-3 overflow-y-auto pr-1"> */}
       <div
