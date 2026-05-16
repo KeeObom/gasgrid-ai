@@ -69,6 +69,7 @@ export default function GasNetworkMap() {
   const [selected, setSelected] = useState<any>(null);
   const [loading, setLoading] = useState(true);
   const [showReadingModal, setShowReadingModal] = useState(false);
+  const [customers, setCustomers] = useState<any[]>([]);
 
   useEffect(() => {
     async function loadNetworkData() {
@@ -81,13 +82,25 @@ export default function GasNetworkMap() {
       const { data: pipelinesData, error: pipelinesError } = await supabase
         .from("pipelines")
         .select("*");
+
+      const { data: customersData, error: customersError } = await supabase
+        .from("station_customers")
+        .select("*");
   
-      if (assetsError || pipelinesError) {
-        console.error("Error loading network data:", assetsError || pipelinesError);
+      // if (assetsError || pipelinesError) {
+      //   console.error("Error loading network data:", assetsError || pipelinesError);
+      // }
+
+      if (assetsError || pipelinesError || customersError) {
+        console.error(
+          "Error loading network data:",
+          assetsError || pipelinesError || customersError
+        );
       }
   
       setAssets(assetsData || []);
       setPipelines(pipelinesData || []);
+      setCustomers(customersData || []);
       setLoading(false);
     }
   
@@ -289,6 +302,33 @@ export default function GasNetworkMap() {
                     </span>
                   </div>
                 ))}
+
+                {customers.filter((c) => c.station_id === selected.id).length > 0 && (
+                  <div className="mt-5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+                    <div className="font-semibold text-cyan-300">
+                      Connected Customers / Offtakers
+                    </div>
+
+                    <div className="mt-3 space-y-3">
+                      {customers
+                        .filter((c) => c.station_id === selected.id)
+                        .map((customer) => (
+                          <div
+                            key={customer.id}
+                            className="rounded-xl bg-slate-950/60 p-3 text-sm"
+                          >
+                            <div className="font-semibold text-white">
+                              {customer.customer_name}
+                            </div>
+                            <div className="mt-1 text-slate-400">
+                              {customer.customer_type} • {customer.daily_allocation} MMSCFD •{" "}
+                              {customer.status}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
               </div>
 
               {selected.status === "critical" && (
