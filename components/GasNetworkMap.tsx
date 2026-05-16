@@ -14,6 +14,7 @@ import { AlertTriangle, Activity, Database, Bot } from "lucide-react";
 import { supabase } from "@/lib/supabase";
 import AIAlertPanel from "@/components/AIAlertPanel";
 import FieldReadingModal from "@/components/FieldReadingModal";
+import AiChatPanel from "@/components/AiChatPanel";
 
 const positions: Record<string, { x: number; y: number }> = {
   escravos: { x: 100, y: 260 },
@@ -278,7 +279,91 @@ export default function GasNetworkMap() {
           </ReactFlow>
         </section>
 
-        <aside className="border-l border-white/10 bg-slate-900 p-5">
+        <aside className="flex h-screen flex-col border-l border-white/10 bg-slate-900">
+  
+          <div className="border-b border-white/10 p-5">
+            <h2 className="text-xl font-bold">Asset Intelligence</h2>
+
+            <p className="mt-1 text-sm text-slate-400">
+              Click any pipeline or station.
+            </p>
+          </div>
+
+          <div className="flex-1 overflow-y-auto p-5">
+            {selected ? (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5">
+                <h3 className="text-lg font-bold">{selected.name}</h3>
+
+                <div className="mt-4 space-y-3 text-sm">
+                  {Object.entries(selected).map(([key, value]) => (
+                    <div
+                      key={key}
+                      className="flex justify-between gap-4 border-b border-white/10 pb-2"
+                    >
+                      <span className="capitalize text-slate-400">
+                        {key.replaceAll("_", " ")}
+                      </span>
+
+                      <span className="text-right font-medium">
+                        {String(value)}
+                      </span>
+                    </div>
+                  ))}
+                </div>
+
+                {customers.filter((c) => c.station_id === selected.id).length > 0 && (
+                  <div className="mt-5 rounded-xl border border-cyan-500/30 bg-cyan-500/10 p-4">
+                    <div className="font-semibold text-cyan-300">
+                      Connected Customers / Offtakers
+                    </div>
+
+                    <div className="mt-3 space-y-3">
+                      {customers
+                        .filter((c) => c.station_id === selected.id)
+                        .map((customer) => (
+                          <div
+                            key={customer.id}
+                            className="rounded-xl bg-slate-950/60 p-3 text-sm"
+                          >
+                            <div className="font-semibold text-white">
+                              {customer.customer_name}
+                            </div>
+
+                            <div className="mt-1 text-slate-400">
+                              {customer.customer_type} •{" "}
+                              {customer.daily_allocation} MMSCFD •{" "}
+                              {customer.status}
+                            </div>
+                          </div>
+                        ))}
+                    </div>
+                  </div>
+                )}
+
+                {selected.status === "critical" && (
+                  <div className="mt-5 rounded-xl border border-red-500/30 bg-red-500/10 p-4 text-sm text-red-100">
+                    AI Insight: Pressure anomaly detected. Possible compressor
+                    failure, leak, downstream restriction, or abnormal demand spike.
+                  </div>
+                )}
+              </div>
+            ) : (
+              <div className="rounded-2xl border border-white/10 bg-white/5 p-5 text-sm text-slate-400">
+                No asset selected yet.
+              </div>
+            )}
+          </div>
+
+          <div className="border-t border-white/10 p-5">
+            <AiChatPanel
+              assets={assets}
+              pipelines={pipelines}
+              customers={customers}
+            />
+          </div>
+        </aside>
+
+        {/* <aside className="border-l border-white/10 bg-slate-900 p-5">
           <h2 className="text-xl font-bold">Asset Intelligence</h2>
           <p className="mt-1 text-sm text-slate-400">
             Click any pipeline or station.
@@ -343,7 +428,13 @@ export default function GasNetworkMap() {
               No asset selected yet.
             </div>
           )}
-        </aside>
+
+          <AiChatPanel
+            assets={assets}
+            pipelines={pipelines}
+            customers={customers}
+          />
+        </aside>         */}
       </div>
 
       <FieldReadingModal
