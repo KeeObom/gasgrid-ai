@@ -16,6 +16,7 @@ import AIAlertPanel from "@/components/AIAlertPanel";
 import FieldReadingModal from "@/components/FieldReadingModal";
 import AiChatPanel from "@/components/AiChatPanel";
 import IncidentPanel from "@/components/IncidentPanel";
+import NetworkKpiBar from "@/components/NetworkKpiBar";
 
 const positions: Record<string, { x: number; y: number }> = {
   escravos: { x: -50, y: 420 },
@@ -288,6 +289,12 @@ export default function GasNetworkMap() {
               Nigeria Gas Transmission Map
             </div>
           </div>
+
+          <NetworkKpiBar
+            pipelines={pipelines}
+            customers={customers}
+            incidents={incidents}
+          />
 
           <ReactFlow
             nodes={nodes}
